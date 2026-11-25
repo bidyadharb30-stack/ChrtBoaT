@@ -1,338 +1,422 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>CoupleSync — Private Couple App</title>
-    
-    <!-- PWA & Mobile Native Meta Tags -->
-    <meta name="theme-color" content="#131018">
-    <meta name="background-color" content="#0f0d13">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="CoupleSync">
-    <meta name="application-name" content="CoupleSync">
-    <link id="pwa-manifest-link" rel="manifest" href="">
-    <link id="apple-touch-icon-link" rel="apple-touch-icon" href="">
-
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Inter & Plus Jakarta Sans -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Tone.js for subtle notification chimes -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
-
-    <style>
-        :root {
-            --sat: env(safe-area-inset-top, 0px);
-            --sab: env(safe-area-inset-bottom, 0px);
-        }
-        body {
-            font-family: 'Inter', sans-serif;
-            overscroll-behavior: none;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-            padding-top: var(--sat);
-            padding-bottom: var(--sab);
-        }
-        input, textarea, .selectable-text {
-            user-select: text;
-        }
-        h1, h2, .brand-font {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-        }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 4px;
-            height: 4px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(244, 63, 94, 0.25);
-            border-radius: 9999px;
-        }
-        /* Subtle chat pattern background */
-        .chat-bg {
-            background-color: #0f0d13;
-            background-image: radial-gradient(rgba(244, 63, 94, 0.08) 1px, transparent 1px),
-                              radial-gradient(rgba(168, 85, 247, 0.06) 1px, #0f0d13 1px);
-            background-size: 32px 32px;
-            background-position: 0 0, 16px 16px;
-        }
-        /* Typing bounce animation */
-        @keyframes typingBounce {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-4px); }
-        }
-        .typing-dot {
-            animation: typingBounce 1.4s infinite ease-in-out both;
-        }
-        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
-        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
-
-        /* Toast slide-in animation */
-        @keyframes slideDown {
-            from { opacity: 0; transform: translate(-50%, -20px) scale(0.95); }
-            to { opacity: 1; transform: translate(-50%, 0) scale(1); }
-        }
-        .toast-enter {
-            animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        /* Splash screen pulse */
-        @keyframes heartBeat {
-            0%, 100% { transform: scale(1); }
-            25% { transform: scale(1.12); }
-            50% { transform: scale(0.98); }
-            75% { transform: scale(1.08); }
-        }
-        .heart-pulse {
-            animation: heartBeat 1.5s infinite ease-in-out;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f0a14" />
+  <title>CoupleSync — Private Couple Chat</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+    body {
+      background: radial-gradient(circle at top right, #23112b, #0f0a14 65%);
+      color: #f8fafc;
+      font-family: system-ui, -apple-system, sans-serif;
+      height: 100dvh;
+      overflow: hidden;
+      margin: 0;
+    }
+    .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(14px); border: 1px solid rgba(255, 255, 255, 0.09); }
+    .msg-me { background: linear-gradient(135deg, #f43f5e, #ec4899); border-radius: 18px 18px 4px 18px; }
+    .msg-partner { background: rgba(255, 255, 255, 0.09); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px 18px 18px 4px; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: rgba(244, 63, 94, 0.4); border-radius: 10px; }
+  </style>
 </head>
-<body class="bg-[#0f0d13] text-slate-100 h-[100dvh] w-full overflow-hidden flex flex-col selection:bg-rose-500 selection:text-white">
+<body class="flex flex-col select-none">
 
-    <!-- ==================== NATIVE APP SPLASH SCREEN ==================== -->
-    <div id="splash-screen" class="fixed inset-0 z-50 bg-[#0f0d13] flex flex-col items-center justify-center transition-opacity duration-500">
-        <div class="w-20 h-20 rounded-3xl bg-gradient-to-tr from-rose-500 via-pink-500 to-purple-600 flex items-center justify-center shadow-2xl shadow-rose-500/40 mb-4 heart-pulse">
-            <i data-lucide="heart" class="w-10 h-10 text-white fill-white"></i>
+  <!-- Toast Banner -->
+  <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 w-[92%] max-w-sm pointer-events-none"></div>
+
+  <!-- SETUP SCREEN -->
+  <div id="setup-screen" class="flex-1 flex flex-col justify-center items-center p-5 overflow-y-auto">
+    <div class="glass w-full max-w-md rounded-3xl p-6 shadow-2xl border border-rose-500/20">
+      <div class="flex flex-col items-center text-center mb-5">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-rose-500 to-pink-500 flex items-center justify-center shadow-lg shadow-rose-500/30 mb-3 text-3xl">
+          ❤️
         </div>
-        <h1 class="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-rose-300 via-pink-200 to-purple-300 bg-clip-text text-transparent">
-            CoupleSync
+        <h1 class="text-2xl font-bold bg-gradient-to-r from-rose-300 via-pink-300 to-purple-300 bg-clip-text text-transparent">
+          CoupleSync
         </h1>
-        <p class="text-xs text-slate-400 mt-1">Private Couple App</p>
+        <p class="text-xs text-slate-400 mt-1">Sirf tum dono ke liye — Private & Real-time ❤️</p>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1.5 uppercase tracking-wider">1. Apna Role Chuno</label>
+          <div class="grid grid-cols-2 gap-2.5">
+            <button type="button" onclick="selectRole('partner1')" id="role-partner1"
+              class="role-btn p-3 rounded-2xl border border-rose-500 bg-rose-500/20 text-center transition">
+              <div class="text-lg mb-0.5">🤴</div>
+              <div class="text-sm font-semibold text-white">Partner 1</div>
+              <div class="text-[11px] text-rose-200">Me / Boyfriend</div>
+            </button>
+            <button type="button" onclick="selectRole('partner2')" id="role-partner2"
+              class="role-btn p-3 rounded-2xl border border-white/10 bg-white/5 text-center transition">
+              <div class="text-lg mb-0.5">👸</div>
+              <div class="text-sm font-semibold text-white">Partner 2</div>
+              <div class="text-[11px] text-slate-400">Girlfriend / Love</div>
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1.5 uppercase tracking-wider">2. Pyara Sa Naam</label>
+          <input id="input-name" type="text" maxlength="20" placeholder="Jaise: Jaan, Babu, My Love..."
+            class="w-full px-4 py-3 rounded-2xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-rose-500 text-sm" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1.5 uppercase tracking-wider">3. Secret Couple Code</label>
+          <div class="flex gap-2">
+            <input id="input-room" type="text" maxlength="24" placeholder="Dono ka same secret code"
+              class="flex-1 px-4 py-3 rounded-2xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-rose-500 text-sm font-mono" />
+            <button type="button" onclick="copyRoomCode()"
+              class="px-3.5 py-3 rounded-2xl bg-white/10 active:bg-white/20 text-slate-200 text-xs font-medium">
+              Copy
+            </button>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-1.5">Dono ko bilkul same code daalna hai.</p>
+        </div>
+
+        <button type="button" id="join-btn" onclick="joinRoom()"
+          class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-600 font-semibold text-white shadow-lg shadow-rose-500/30 active:scale-[0.98] transition">
+          Start Private Chat 💬
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHAT SCREEN -->
+  <div id="chat-screen" class="hidden flex-1 flex flex-col max-w-2xl w-full mx-auto h-full">
+    <header class="glass px-4 py-3 flex items-center justify-between border-b border-white/10 z-20">
+      <div class="flex items-center gap-3">
+        <div class="relative">
+          <div id="partner-avatar" class="w-11 h-11 rounded-full bg-gradient-to-tr from-pink-500 to-purple-600 flex items-center justify-center font-bold text-lg text-white">
+            ❤️
+          </div>
+          <span id="partner-status-dot" class="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-slate-500 border-2 border-[#160d1f]"></span>
+        </div>
+        <div>
+          <h2 id="partner-display-name" class="font-bold text-base text-white leading-tight">Partner</h2>
+          <p id="partner-status-text" class="text-xs text-slate-400">Offline</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button onclick="toggleSound()" id="sound-btn" class="px-2.5 py-2 rounded-xl bg-white/5 text-sm">🔔</button>
+        <button onclick="leaveRoom()" class="px-2.5 py-2 rounded-xl bg-white/5 text-xs text-rose-300">Exit</button>
+      </div>
+    </header>
+
+    <main id="messages-box" class="flex-1 overflow-y-auto p-4 space-y-3 select-text">
+      <div class="text-center my-4">
+        <span class="px-3 py-1 rounded-full bg-white/5 text-[11px] text-slate-400 border border-white/5">
+          🔒 End-to-End Private Couple Room
+        </span>
+      </div>
+    </main>
+
+    <div id="typing-bar" class="hidden px-5 py-1 text-xs text-pink-300 italic">
+      Partner is typing...
     </div>
 
-    <!-- Top Floating Toast Container -->
-    <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 w-[92%] max-w-md pointer-events-none"></div>
-
-    <!-- ==================== INSTALL APP / APK GUIDE MODAL ==================== -->
-    <div id="install-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
-        <div class="w-full max-w-md bg-[#181422] border-t sm:border border-white/15 rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl max-h-[88dvh] overflow-y-auto">
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-rose-500 to-pink-500 flex items-center justify-center shadow-md">
-                        <i data-lucide="smartphone" class="w-5 h-5 text-white"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-base text-white">Install CoupleSync App</h3>
-                        <p class="text-[11px] text-slate-400">Home screen par app ki tarah lagayein</p>
-                    </div>
-                </div>
-                <button onclick="closeInstallModal()" class="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-
-            <!-- Direct 1-Tap Native Install Button (shown when browser supports prompt) -->
-            <div id="native-prompt-box" class="hidden mb-4 p-4 rounded-2xl bg-gradient-to-r from-rose-500/20 to-purple-500/20 border border-rose-500/30">
-                <p class="text-xs text-rose-200 mb-3">Aapka phone direct 1-tap app installation support karta hai!</p>
-                <button onclick="triggerNativeInstall()" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 text-white font-bold text-sm shadow-lg shadow-rose-500/25 flex items-center justify-center gap-2 active:scale-95 transition-transform">
-                    <i data-lucide="download" class="w-4 h-4"></i>
-                    <span>Install App Now (1-Tap)</span>
-                </button>
-            </div>
-
-            <!-- Step-by-step tabs -->
-            <div class="space-y-3 text-xs text-slate-300">
-                <div class="p-3.5 rounded-2xl bg-white/[0.04] border border-white/10">
-                    <div class="flex items-center gap-2 font-bold text-emerald-400 mb-1.5">
-                        <i data-lucide="smartphone" class="w-4 h-4"></i>
-                        <span>Android (Chrome Browser)</span>
-                    </div>
-                    <ol class="list-decimal list-inside space-y-1 text-slate-300 leading-relaxed">
-                        <li>Browser ke upar right corner mein <b>3 dots (⋮)</b> par tap karein.</li>
-                        <li><b>"Install app"</b> ya <b>"Add to Home screen"</b> select karein.</li>
-                        <li><b>Install</b> par click karein — CoupleSync icon aapke phone menu mein aa jayega!</li>
-                    </ol>
-                </div>
-
-                <div class="p-3.5 rounded-2xl bg-white/[0.04] border border-white/10">
-                    <div class="flex items-center gap-2 font-bold text-sky-400 mb-1.5">
-                        <i data-lucide="apple" class="w-4 h-4"></i>
-                        <span>iPhone / iOS (Safari Browser)</span>
-                    </div>
-                    <ol class="list-decimal list-inside space-y-1 text-slate-300 leading-relaxed">
-                        <li>Niche beech mein <b>Share icon (□↑)</b> par tap karein.</li>
-                        <li>Scroll karke <b>"Add to Home Screen"</b> par click karein.</li>
-                        <li>Upar right mein <b>Add</b> dabayein — full-screen app ready!</li>
-                    </ol>
-                </div>
-
-                <div class="p-3.5 rounded-2xl bg-white/[0.04] border border-white/10">
-                    <div class="flex items-center gap-2 font-bold text-amber-400 mb-1.5">
-                        <i data-lucide="package" class="w-4 h-4"></i>
-                        <span>Direct .APK File Kaise Banayein?</span>
-                    </div>
-                    <p class="text-slate-400 leading-relaxed">
-                        Agar aapko WhatsApp par bhejne ke liye <b>.APK</b> file chahiye: is page ka URL copy karein, <b>pwabuilder.com</b> ya <b>median.co</b> kholein, URL paste karein aur 1 click mein Android <b>.APK</b> download kar lein.
-                    </p>
-                </div>
-            </div>
-
-            <button onclick="closeInstallModal()" class="w-full mt-4 py-3 rounded-2xl bg-white/10 hover:bg-white/15 text-sm font-semibold text-white transition-colors">
-                Got It
-            </button>
-        </div>
+    <!-- Emoji Drawer -->
+    <div id="emoji-drawer" class="hidden glass mx-3 mb-2 p-3 rounded-2xl border border-white/10">
+      <div id="emoji-grid" class="grid grid-cols-8 gap-1.5 text-2xl text-center"></div>
     </div>
 
-    <!-- ==================== LOGIN / ROOM SETUP SCREEN ==================== -->
-    <div id="setup-screen" class="flex-1 flex flex-col justify-between p-4 overflow-y-auto bg-gradient-to-br from-[#130f1a] via-[#1a111d] to-[#0f0d13]">
-        
-        <!-- Top App Bar on Login Screen -->
-        <div class="w-full max-w-md mx-auto flex items-center justify-between pt-1 pb-2">
-            <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
-                <span class="text-xs font-semibold tracking-wider uppercase text-slate-400">CoupleSync App v2.0</span>
-            </div>
-            <button onclick="openInstallModal()" id="setup-install-btn"
-                class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-xs font-semibold text-rose-300 transition-all active:scale-95">
-                <i data-lucide="download" class="w-3.5 h-3.5"></i>
-                <span>Install App</span>
-            </button>
-        </div>
+    <!-- Input Bar -->
+    <footer class="glass p-3 border-t border-white/10">
+      <form onsubmit="sendMessage(event)" class="flex items-center gap-2">
+        <button type="button" onclick="toggleEmojiDrawer()" class="p-2.5 rounded-xl bg-white/5 text-xl">😊</button>
+        <input id="msg-input" type="text" autocomplete="off" placeholder="Message likho..." oninput="handleTyping()"
+          class="flex-1 px-4 py-3 rounded-2xl bg-white/5 border border-white/10 text-white placeholder-slate-400 focus:outline-none focus:border-rose-500 text-sm" />
+        <button type="button" onclick="sendQuickHeart()" class="p-2.5 rounded-xl bg-rose-500/20 text-lg">❤️</button>
+        <button type="submit" class="px-4 py-3 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-600 text-white font-semibold text-sm">Send</button>
+      </form>
+    </footer>
+  </div>
 
-        <!-- Center Pairing Card -->
-        <div class="w-full max-w-md mx-auto my-auto bg-white/[0.04] backdrop-blur-xl border border-white/10 rounded-3xl p-6 sm:p-7 shadow-2xl shadow-rose-950/20">
-            <!-- Header Logo -->
-            <div class="flex flex-col items-center text-center mb-5">
-                <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-rose-500 to-pink-500 flex items-center justify-center shadow-lg shadow-rose-500/30 mb-3.5">
-                    <i data-lucide="heart" class="w-8 h-8 text-white fill-white"></i>
-                </div>
-                <h1 class="text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-rose-300 via-pink-200 to-purple-300 bg-clip-text text-transparent">
-                    CoupleSync
-                </h1>
-                <p class="text-xs sm:text-sm text-slate-400 mt-1">
-                    Sirf tum dono ke liye — Private, Real-time & Secure ❤️
-                </p>
-            </div>
+  <!-- Firebase Realtime Database SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getDatabase, ref, set, push, onValue, update, onDisconnect, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-            <!-- Connection Status Pill -->
-            <div id="auth-status-pill" class="flex items-center justify-center gap-2 text-xs text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-full py-1.5 px-3 mb-5">
-                <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                <span>Connecting securely...</span>
-            </div>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAO4d7buesryQB9Y63D4lTGlFox0_Z2gBE",
+      authDomain: "chartboat69.firebaseapp.com",
+      databaseURL: "https://chartboat69-default-rtdb.firebaseio.com",
+      projectId: "chartboat69",
+      storageBucket: "chartboat69.firebasestorage.app",
+      messagingSenderId: "1076666702816",
+      appId: "1:1076666702816:web:0f9a135be5610bcf676985"
+    };
 
-            <!-- Setup Form -->
-            <form id="join-form" class="space-y-4">
-                <!-- Role Selection -->
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
-                        1. Select Who You Are (Apna Role Chuno)
-                    </label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <button type="button" id="role-p1" onclick="selectRole('partner1')"
-                            class="role-btn flex flex-col items-center justify-center p-3.5 rounded-2xl border-2 border-rose-500 bg-rose-500/15 text-white transition-all active:scale-95">
-                            <span class="text-2xl mb-1">🤴🏻</span>
-                            <span class="text-sm font-semibold">Partner 1</span>
-                            <span class="text-[11px] text-rose-300">Me / Boyfriend</span>
-                        </button>
-                        <button type="button" id="role-p2" onclick="selectRole('partner2')"
-                            class="role-btn flex flex-col items-center justify-center p-3.5 rounded-2xl border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 transition-all active:scale-95">
-                            <span class="text-2xl mb-1">👸🏻</span>
-                            <span class="text-sm font-semibold">Partner 2</span>
-                            <span class="text-[11px] text-slate-400">Girlfriend / Love</span>
-                        </button>
-                    </div>
-                </div>
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-                <!-- Display Name -->
-                <div>
-                    <label for="display-name" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
-                        2. Your Nickname (Pyara Sa Naam)
-                    </label>
-                    <input type="text" id="display-name" required maxlength="20" placeholder="e.g., Jaan, Babu, Aarav..."
-                        class="w-full bg-white/5 border border-white/10 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 rounded-2xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all">
-                </div>
+    let selectedRole = localStorage.getItem("cs_role") || "partner1";
+    let myName = localStorage.getItem("cs_name") || "";
+    let roomCode = localStorage.getItem("cs_room") || "";
+    let soundEnabled = true;
+    let lastPartnerOnline = null;
+    let initialLoadDone = false;
+    let lastMsgCount = 0;
+    let typingTimeout = null;
 
-                <!-- Secret Room Code -->
-                <div>
-                    <div class="flex items-center justify-between mb-1.5">
-                        <label for="room-code" class="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                            3. Secret Couple Code
-                        </label>
-                        <button type="button" onclick="generateRoomCode()" class="text-xs font-medium text-rose-400 hover:text-rose-300 flex items-center gap-1 transition-colors">
-                            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
-                            Generate Code
-                        </button>
-                    </div>
-                    <div class="relative flex items-center">
-                        <input type="text" id="room-code" required maxlength="16" placeholder="e.g., LOVE-2026"
-                            class="w-full bg-white/5 border border-white/10 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 rounded-2xl px-4 py-3 text-sm font-mono uppercase tracking-widest text-white placeholder-slate-500 outline-none transition-all">
-                        <button type="button" onclick="copySetupCode()" title="Copy Code"
-                            class="absolute right-2.5 p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 transition-colors">
-                            <i data-lucide="copy" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                    <p class="text-[11px] text-slate-400 mt-1.5">
-                        Dono ko same Secret Code daalna hai connect hone ke liye.
-                    </p>
-                </div>
+    const emojis = ["❤️","😘","🥰","😍","💕","💖","💋","🤗","🥺","😭","😂","🙈","🌹","✨","🔥","🍫","💍","🫶","😴","😤","🎉","🤍","💓","💞"];
 
-                <!-- Join Button -->
-                <button type="submit" id="enter-chat-btn" disabled
-                    class="w-full mt-2 bg-gradient-to-r from-rose-500 via-pink-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3.5 px-6 rounded-2xl shadow-lg shadow-rose-500/25 flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
-                    <span>Open Private Chat</span>
-                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                </button>
-            </form>
-        </div>
+    document.getElementById("input-name").value = myName;
+    document.getElementById("input-room").value = roomCode;
+    selectRole(selectedRole);
 
-        <!-- Bottom Install Hint -->
-        <div class="w-full max-w-md mx-auto text-center pt-2 pb-1">
-            <button onclick="openInstallModal()" class="text-[11px] text-slate-400 hover:text-rose-300 transition-colors">
-                📲 Phone par direct App install karne ke liye yahan tap karein
-            </button>
-        </div>
-    </div>
+    const grid = document.getElementById("emoji-grid");
+    emojis.forEach(em => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = em;
+      b.className = "p-1 rounded-lg active:bg-white/15";
+      b.onclick = () => {
+        const inp = document.getElementById("msg-input");
+        inp.value += em;
+        inp.focus();
+      };
+      grid.appendChild(b);
+    });
 
-    <!-- ==================== MAIN CHAT SCREEN ==================== -->
-    <div id="chat-screen" class="hidden flex-1 flex flex-col h-[100dvh] max-w-3xl w-full mx-auto bg-[#131018] sm:border-x sm:border-white/10 shadow-2xl relative">
-        
-        <!-- Top Native App Header -->
-        <header class="bg-[#181420]/95 backdrop-blur-md border-b border-white/10 px-3 sm:px-5 py-2.5 flex items-center justify-between z-20 shrink-0">
-            <!-- Left: Partner Avatar & Live Presence -->
-            <div class="flex items-center gap-2.5 min-w-0">
-                <button onclick="leaveRoom()" title="Switch Room" class="p-2 -ml-1 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors active:scale-90">
-                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
-                </button>
+    window.selectRole = (role) => {
+      selectedRole = role;
+      document.querySelectorAll(".role-btn").forEach(el => {
+        el.classList.remove("border-rose-500", "bg-rose-500/20");
+        el.classList.add("border-white/10", "bg-white/5");
+      });
+      const active = document.getElementById("role-" + role);
+      active.classList.remove("border-white/10", "bg-white/5");
+      active.classList.add("border-rose-500", "bg-rose-500/20");
+    };
 
-                <div class="relative shrink-0">
-                    <div id="partner-avatar" class="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-tr from-rose-500 to-purple-500 flex items-center justify-center text-xl shadow-md border border-white/15">
-                        👸🏻
-                    </div>
-                    <!-- Live Online/Offline Dot -->
-                    <span id="partner-status-dot" class="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-slate-500 border-2 border-[#181420] transition-colors duration-300"></span>
-                </div>
+    window.copyRoomCode = () => {
+      const code = document.getElementById("input-room").value.trim();
+      if (!code) return showToast("Pehle code likho!");
+      navigator.clipboard?.writeText(code);
+      showToast("Secret code copy ho gaya!");
+    };
 
-                <div class="min-w-0">
-                    <div class="flex items-center gap-1.5">
-                        <h2 id="partner-name-header" class="font-bold text-sm sm:text-base text-white truncate">Waiting for Partner...</h2>
-                        <span class="text-rose-400 text-xs">❤️</span>
-                    </div>
-                    <p id="partner-status-text" class="text-[11px] sm:text-xs text-slate-400 truncate flex items-center gap-1.5">
-                        <span>Offline • Share code to invite</span>
-                    </p>
-                </div>
-            </div>
+    window.toggleEmojiDrawer = () => {
+      document.getElementById("emoji-drawer").classList.toggle("hidden");
+    };
 
-            <!-- Right: Install App, Notification Toggle & Share Code -->
-            <div class="flex items-center gap-1.5 shrink-0">
-                <!-- Install App Icon Button -->
-                <button onclick="openInstallModal()" id="chat-install-btn" title="Install App on Phone"
-                    class="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-rose-300 transition-all active:scale-90">
-                    <i data-lucide="download" class="w-4 h-4"></i>
-                </button>
+    window.toggleSound = () => {
+      soundEnabled = !soundEnabled;
+      document.getElementById("sound-btn").textContent = soundEnabled ? "🔔" : "🔕";
+      showToast(soundEnabled ? "Sound On" : "Sound Muted");
+    };
 
-                <!-- Notification Bell Toggle -->
-                <button id="notif-toggle-btn" onclick="toggleBrowserNotifications()" title="Enable Online & Message Notifications"
-                    class="flex items-center gap-1 px-2.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-slate-300 transition-all active:scale-90">
-                    <i id="notif-icon" data-lucide="bell-off" class="w-4 h-4 text-amber-400"></i>
-                    <span id="notif-label" c
+    function playBeep(type) {
+      if (!soundEnabled) return;
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = type === "online" ? 880 : type === "offline" ? 440 : 660;
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.25);
+      } catch (e) {}
+    }
+
+    function showToast(text) {
+      const box = document.getElementById("toast-container");
+      const el = document.createElement("div");
+      el.className = "glass px-4 py-3 rounded-2xl text-xs font-medium text-white shadow-xl border border-rose-500/30 text-center";
+      el.textContent = text;
+      box.appendChild(el);
+      setTimeout(() => el.remove(), 3500);
+    }
+
+    window.joinRoom = () => {
+      myName = document.getElementById("input-name").value.trim();
+      roomCode = document.getElementById("input-room").value.trim().replace(/[.#$/[\]]/g, "_");
+      if (!myName || !roomCode) return showToast("Naam aur Secret Code dono bharo!");
+
+      localStorage.setItem("cs_role", selectedRole);
+      localStorage.setItem("cs_name", myName);
+      localStorage.setItem("cs_room", roomCode);
+
+      document.getElementById("setup-screen").classList.add("hidden");
+      document.getElementById("chat-screen").classList.remove("hidden");
+
+      startSession();
+    };
+
+    window.leaveRoom = () => {
+      const myPresenceRef = ref(db, `rooms/${roomCode}/presence/${selectedRole}`);
+      update(myPresenceRef, { online: false, lastSeen: Date.now() });
+      document.getElementById("chat-screen").classList.add("hidden");
+      document.getElementById("setup-screen").classList.remove("hidden");
+    };
+
+    function startSession() {
+      const partnerRole = selectedRole === "partner1" ? "partner2" : "partner1";
+      const myPresenceRef = ref(db, `rooms/${roomCode}/presence/${selectedRole}`);
+      const partnerPresenceRef = ref(db, `rooms/${roomCode}/presence/${partnerRole}`);
+      const messagesRef = ref(db, `rooms/${roomCode}/messages`);
+
+      // Set Online + Auto Offline on Disconnect
+      const connectedRef = ref(db, ".info/connected");
+      onValue(connectedRef, (snap) => {
+        if (snap.val() === true) {
+          onDisconnect(myPresenceRef).set({
+            name: myName,
+            online: false,
+            typing: false,
+            lastSeen: Date.now()
+          });
+          set(myPresenceRef, {
+            name: myName,
+            online: true,
+            typing: false,
+            lastSeen: Date.now()
+          });
+        }
+      });
+
+      // Listen Partner Online/Offline & Typing
+      onValue(partnerPresenceRef, (snap) => {
+        const data = snap.val();
+        if (!data) return;
+
+        const pName = data.name || "Partner";
+        document.getElementById("partner-display-name").textContent = pName;
+        document.getElementById("partner-avatar").textContent = pName.charAt(0).toUpperCase();
+
+        const dot = document.getElementById("partner-status-dot");
+        const statusText = document.getElementById("partner-status-text");
+        const typingBar = document.getElementById("typing-bar");
+
+        if (data.online) {
+          dot.className = "absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-[#160d1f]";
+          statusText.textContent = "Online now";
+          statusText.className = "text-xs text-emerald-400 font-medium";
+        } else {
+          dot.className = "absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-slate-500 border-2 border-[#160d1f]";
+          const timeStr = data.lastSeen ? new Date(data.lastSeen).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "recently";
+          statusText.textContent = `Last seen ${timeStr}`;
+          statusText.className = "text-xs text-slate-400";
+        }
+
+        if (data.typing && data.online) {
+          typingBar.textContent = `${pName} is typing...`;
+          typingBar.classList.remove("hidden");
+        } else {
+          typingBar.classList.add("hidden");
+        }
+
+        // Notify when Partner comes Online or goes Offline
+        if (lastPartnerOnline !== null && lastPartnerOnline !== data.online) {
+          if (data.online) {
+            playBeep("online");
+            showToast(`💚 ${pName} abhi Online aaya hai!`);
+          } else {
+            playBeep("offline");
+            showToast(`⚪ ${pName} Offline chala gaya`);
+          }
+        }
+        lastPartnerOnline = data.online;
+      });
+
+      // Listen Messages
+      onValue(messagesRef, (snap) => {
+        const val = snap.val() || {};
+        const list = Object.entries(val).map(([id, m]) => ({ id, ...m }));
+        renderMessages(list);
+
+        if (initialLoadDone && list.length > lastMsgCount) {
+          const latest = list[list.length - 1];
+          if (latest && latest.sender !== selectedRole) {
+            playBeep("msg");
+            showToast(`💌 ${latest.senderName || "Partner"}: ${latest.text}`);
+          }
+        }
+        lastMsgCount = list.length;
+        initialLoadDone = true;
+      });
+    }
+
+    function renderMessages(list) {
+      const box = document.getElementById("messages-box");
+      box.innerHTML = `<div class="text-center my-3"><span class="px-3 py-1 rounded-full bg-white/5 text-[11px] text-slate-400">🔒 Private Couple Room: ${roomCode}</span></div>`;
+
+      list.forEach(m => {
+        const isMe = m.sender === selectedRole;
+        const time = m.ts ? new Date(m.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
+        const wrap = document.createElement("div");
+        wrap.className = `flex flex-col ${isMe ? "items-end" : "items-start"}`;
+
+        const bubble = document.createElement("div");
+        bubble.className = `${isMe ? "msg-me" : "msg-partner"} px-4 py-2.5 max-w-[78%] text-sm text-white shadow relative cursor-pointer`;
+        bubble.ondblclick = () => toggleHeart(m.id, m.liked);
+        bubble.innerHTML = `
+          <div class="break-words">${escapeHtml(m.text)}</div>
+          <div class="text-[10px] opacity-70 mt-1 text-right">${time} ${m.liked ? "❤️" : ""}</div>
+        `;
+        wrap.appendChild(bubble);
+        box.appendChild(wrap);
+      });
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, s => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[s]));
+    }
+
+    window.toggleHeart = (msgId, currentLiked) => {
+      update(ref(db, `rooms/${roomCode}/messages/${msgId}`), { liked: !currentLiked });
+    };
+
+    window.sendMessage = (e) => {
+      e.preventDefault();
+      const inp = document.getElementById("msg-input");
+      const text = inp.value.trim();
+      if (!text) return;
+      inp.value = "";
+      document.getElementById("emoji-drawer").classList.add("hidden");
+
+      push(ref(db, `rooms/${roomCode}/messages`), {
+        sender: selectedRole,
+        senderName: myName,
+        text,
+        ts: Date.now(),
+        liked: false
+      });
+
+      update(ref(db, `rooms/${roomCode}/presence/${selectedRole}`), { typing: false });
+    };
+
+    window.sendQuickHeart = () => {
+      push(ref(db, `rooms/${roomCode}/messages`), {
+        sender: selectedRole,
+        senderName: myName,
+        text: "❤️",
+        ts: Date.now(),
+        liked: false
+      });
+    };
+
+    window.handleTyping = () => {
+      const myRef = ref(db, `rooms/${roomCode}/presence/${selectedRole}`);
+      update(myRef, { typing: true });
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => {
+        update(myRef, { typing: false });
+      }, 1500);
+    };
+  </script>
+</body>
+</html>
